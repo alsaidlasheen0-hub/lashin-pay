@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم والإدارة - لاشين تك</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f9; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 1050px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(26, 115, 232, 0.2); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { margin: 0; font-size: 22px; }
+    
+    .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 71, 161, 0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
+    .login-box { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-top: 5px solid #1a73e8; }
+    .login-box h2 { color: #1a73e8; margin-bottom: 20px; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border-right: 5px solid #1a73e8; }
+    .stat-card.green { border-right-color: #34a853; }
+    .stat-card.orange { border-right-color: #fbbc04; }
+    .stat-title { font-size: 13px; color: #5f6368; font-weight: bold; margin-bottom: 8px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #202124; }
+
+    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; border-top: 4px solid #1a73e8; }
+    .card h2 { margin-top: 0; color: #1a73e8; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .form-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    input[type="text"], input[type="password"], input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; flex: 1; min-width: 180px; }
+    .btn { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    .btn:hover { background: #1557b0; }
+    .btn-approve { background: #34a853; padding: 6px 10px; font-size: 12px; }
+    .btn-reject { background: #ea4335; padding: 6px 10px; font-size: 12px; }
+    .btn-wa { background: #25d366; color: white; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    th, td { padding: 10px; text-align: right; border-bottom: 1px solid #eee; }
+    th { background: #e8f0fe; color: #1a73e8; font-weight: bold; }
+    tr:hover { background: #f8f9fa; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+    .badge-pending { background: #fef7e0; color: #b06000; }
+    .badge-approved { background: #e6f4ea; color: #137333; }
+    .badge-rejected { background: #fce8e6; color: #c5221f; }
+    .refresh-btn { background: #5f6368; float: left; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>تسجيل الدخول للإدارة</h2>
+    <input type="password" id="passInput" placeholder="أدخل كلمة السر" style="width: 100%; box-sizing: border-box; margin-bottom: 15px; text-align: center;">
+    <button class="btn" style="width: 100%;" onclick="login()">دخول</button>
+    <div id="loginMsg" style="margin-top: 10px; color: red; font-weight: bold; font-size: 13px;"></div>
+  </div>
+</div>
+
+<div class="container" id="adminContent" style="display: none;">
+  <div class="header">
+    <h1>لاشين تك - لوحة التحكم والإدارة</h1>
+    <button class="btn" style="background: #ea4335;" onclick="logout()">تسجيل الخروج</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-title">إجمالي المبيعات المحصلة</div>
+      <div class="stat-value" id="statRevenue">0 ج.م</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">الطلبات المفعلة</div>
+      <div class="stat-value" id="statApproved">0</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-title">طلبات تنتظر التفعيل</div>
+      <div class="stat-value" id="statPending">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>إعدادات الخدمة ورقم المحفظة</h2>
+    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
+      <span>حالة استقبال الطلبات: <strong id="serviceStatusText" style="font-size: 16px;">جاري التحميل...</strong></span>
+      <button class="btn" id="toggleServiceBtn" onclick="toggleService()" style="padding: 6px 15px;"></button>
+    </div>
+    <p>الرقم الحالي للتحويل: <strong id="currentNumber" style="color: #d93025; font-size: 18px;">جاري التحميل...</strong></p>
+    <div class="form-inline">
+      <input type="text" id="newPayNumber" placeholder="أدخل رقم الكاش الجديد">
+      <button class="btn" onclick="updateNumber()">تحديث رقم الدفع</button>
+    </div>
+    <div class="form-inline">
+      <input type="password" id="newPassword" placeholder="كلمة سر جديدة للوحة">
+      <button class="btn" style="background: #34a853;" onclick="updatePassword()">تغيير كلمة السر</button>
+    </div>
+    <div id="status" style="margin-top: 10px; font-weight: bold;"></div>
+  </div>
+
+  <div class="card">
+    <h2>إدارة أكواد الخصم (الكوبونات)</h2>
+    <div class="form-inline">
+      <input type="text" id="couponCode" placeholder="أدخل كود الخصم (مثلاً: LASHIN10)">
+      <input type="number" id="couponDiscount" placeholder="قيمة الخصم (جنيه)">
+      <button class="btn" style="background: #34a853;" onclick="addCoupon()">+ إضافة الكود</button>
+    </div>
+    <div style="margin-top: 15px;">
+      <strong>الكوبونات المتاحة حالياً:</strong>
+      <div id="couponsList" style="margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap;">جاري التحميل...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <button class="btn refresh-btn" onclick="loadOrders()">🔄 تحديث البيانات</button>
+    <h2>طلبات التجديد الواردة (تحديث تلقائي في الخلفية)</h2>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الاسم</th>
+            <th>رقم المشترك</th>
+            <th>الخطة</th>
+            <th>المبلغ</th>
+            <th>رقم المحول منه</th>
+            <th>الحالة</th>
+            <th>ملاحظات</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+          <tr><td colspan="9" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQdtJXIqn7GfANLgmn6ics9uP1RJjPEluEBbPZXu65h5qhySBuJ0eC3Zn5gkO5YlYX/exec";
+  let currentServiceStatus = "ON";
+
+  function login() {
+    const pass = document.getElementById('passInput').value;
+    if(!pass) return;
+    document.getElementById('loginMsg').innerText = "جاري التحقق...";
+    
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + "?action=verify_pass&pass=" + encodeURIComponent(pass) + "&callback=handleLogin&ts=" + new Date().getTime();
+    document.body.appendChild(script);
+  }
+
+  function handleLogin(data) {
+    if(data && data.result === "success") {
+      sessionStorage.setItem('admin_authed', 'true');
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminContent').style.display = 'block';
+      loadCurrentNumber();
+      loadOrders();
+      setInterval(loadOrders, 10000); // تحديث تلقائي كل 10 ثواني
+    } else {
+      document.getElementById('loginMsg').innerText = "كلمة السر غير صحيحة!";
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('admin_authed');
+    location.reload();
+  }
+
+  if(sessionStorage.getItem('admin_authed') === 'true') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+    loadCurrentNumber();
+    loadOrders();
+    setInterval(loadOrders, 10000);
+  }
+
+  function loadCurrentNumber() {
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + "?callback=handleAdminNum&ts=" + new Date().getTime();
+    document.body.appendChild(script);
+  }
+  function handleAdminNum(data) {
+    if(data && data.pay_number) document.getElementById('currentNumber').innerText = data.pay_number;
+  }
+
+  function toggleService() {
+    const newStatus = (currentServiceStatus === "ON") ? "OFF" : "ON";
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "toggle_service", status: newStatus }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      setTimeout(loadOrders, 1000);
+    });
+  }
+
+  function updateNumber() {
+    const newNum = document.getElementById('newPayNumber').value.trim();
+    if(!newNum) return alert("أدخل رقم هاتف صحيح");
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "update_pay_number", new_pay_number: newNum }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      alert("تم تحديث الرقم بنجاح!");
+      document.getElementById('currentNumber').innerText = newNum;
+      document.getElementById('newPayNumber').value = "";
+    });
+  }
+
+  function updatePassword() {
+    const newPass = document.getElementById('newPassword').value.trim();
+    if(!newPass) return alert("أدخل كلمة سر جديدة");
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "update_password", new_password: newPass }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      alert("تم تغيير كلمة السر بنجاح!");
+      document.getElementById('newPassword').value = "";
+    });
+  }
+
+  function addCoupon() {
+    const code = document.getElementById('couponCode').value.trim();
+    const discount = document.getElementById('couponDiscount').value.trim();
+    if(!code || !discount) return alert("يرجى إدخال الكود وقيمة الخصم");
+
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "add_coupon", code: code, discount: discount }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      alert("تمت إضافة الكود بنجاح!");
+      document.getElementById('couponCode').value = "";
+      document.getElementById('couponDiscount').value = "";
+      setTimeout(loadOrders, 1000);
+    });
+  }
+
+  function deleteCoupon(rowIndex) {
+    if(!confirm("هل أنت متأكد من حذف هذا الكود؟")) return;
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "delete_coupon", row_index: rowIndex }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      alert("تم حذف الكود بنجاح!");
+      setTimeout(loadOrders, 1000);
+    });
+  }
+
+  function loadOrders() {
+    const oldScript = document.getElementById('orders_jsonp');
+    if(oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.id = 'orders_jsonp';
+    script.src = SCRIPT_URL + "?action=get_all_orders&callback=renderOrders&ts=" + new Date().getTime();
+    document.body.appendChild(script);
+  }
+
+  function renderOrders(data) {
+    const tbody = document.getElementById('ordersTableBody');
+    if(!data) return;
+    tbody.innerHTML = '';
+
+    currentServiceStatus = data.service_status || "ON";
+    const statusText = document.getElementById('serviceStatusText');
+    const toggleBtn = document.getElementById('toggleServiceBtn');
+    
+    if (currentServiceStatus === "ON") {
+      statusText.innerText = "يعمل 🟢";
+      statusText.style.color = "green";
+      toggleBtn.innerText = "إيقاف الخدمة ⏸️";
+      toggleBtn.style.background = "#ea4335";
+    } else {
+      statusText.innerText = "متوقف مؤقتاً 🔴 (صيانة)";
+      statusText.style.color = "red";
+      toggleBtn.innerText = "تشغيل الخدمة ▶️";
+      toggleBtn.style.background = "#34a853";
+    }
+
+    const cDiv = document.getElementById('couponsList');
+    if (data.coupons && data.coupons.length > 0) {
+      cDiv.innerHTML = data.coupons.map(c => `
+        <span style="background:#e8f0fe; color:#1a73e8; padding:5px 10px; border-radius:6px; font-weight:bold; display:inline-flex; align-items:center; gap:8px;">
+          ${c.code} (${c.discount} ج.م)
+          <button onclick="deleteCoupon(${c.row_index})" style="background:#ea4335; color:white; border:none; border-radius:4px; padding:2px 6px; cursor:pointer; font-size:11px;">✕</button>
+        </span>
+      `).join('');
+    } else {
+      cDiv.innerText = "لا توجد كوبونات مضافة بعد.";
+    }
+
+    if (!data.orders || data.orders.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">لا توجد طلبات حتى الآن</td></tr>';
+      updateStats(0, 0, 0);
+      return;
+    }
+
+    let totalRevenue = 0, approvedCount = 0, pendingCount = 0;
+    let reversedOrders = [...data.orders].reverse();
+
+    reversedOrders.forEach(order => {
+      let statusBadge = '<span class="badge badge-pending">بانتظار التفعيل</span>';
+      if(order.status === "تم التفعيل") {
+        statusBadge = '<span class="badge badge-approved">تم التفعيل</span>';
+        totalRevenue += parseFloat(order.amount) || 0;
+        approvedCount++;
+      } else if(order.status === "مرفوض") {
+        statusBadge = '<span class="badge badge-rejected">مرفوض</span>';
+      } else {
+        pendingCount++;
+      }
+
+      const formattedDate = new Date(order.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' });
+      
+      // رسالة الواتساب الجاهزة للعميل عند الضغط على زرار واتساب من لوحة الإدارة
+      const waMsg = encodeURIComponent(`أهلاً بك يا ${order.name}، تم استلام طلب تجديد خطة (${order.plan}) وتأكيده بنجاح من لاشين تك.`);
+      const waUrl = `https://wa.me/2${order.user_phone}?text=${waMsg}`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formattedDate}</td>
+        <td><strong>${order.name}</strong></td>
+        <td>${order.user_phone}</td>
+        <td>${order.plan}</td>
+        <td>${order.amount} ج.م</td>
+        <td>${order.sender_phone}</td>
+        <td>${statusBadge}</td>
+        <td><small style="color:red;">${order.note || '-'}</small></td>
+        <td>
+          <button class="btn btn-approve" onclick="updateOrderStatus(${order.row_index}, 'تم التفعيل')">✓</button>
+          <button class="btn btn-reject" onclick="rejectOrder(${order.row_index})">✕</button>
+          <a href="${waUrl}" target="_blank" class="btn-wa">📱 واتساب</a>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    updateStats(totalRevenue, approvedCount, pendingCount);
+  }
+
+  function updateStats(revenue, approved, pending) {
+    document.getElementById('statRevenue').innerText = revenue.toLocaleString('ar-EG') + " ج.م";
+    document.getElementById('statApproved').innerText = approved;
+    document.getElementById('statPending').innerText = pending;
+  }
+
+  function updateOrderStatus(rowIndex, newStatus, note = "") {
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify({ action: "update_status", row_index: rowIndex, new_status: newStatus, note: note }));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      setTimeout(loadOrders, 1000);
+    });
+  }
+
+  function rejectOrder(rowIndex) {
+    const reason = prompt("برجاء كتابة سبب الرفض:");
+    if(reason === null) return;
+    updateOrderStatus(rowIndex, "مرفوض", reason);
+  }
+</script>
+
+</body>
+</html>

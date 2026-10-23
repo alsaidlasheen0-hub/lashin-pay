@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بوابة تجديد الاشتراك - لاشين تك</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #172554 100%);
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+    .card { background: var(--card-bg); padding: 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); width: 100%; max-width: 480px; border-top: 6px solid var(--primary); position: relative; backdrop-filter: blur(10px); }
+    .brand-header { text-align: center; margin-bottom: 25px; }
+    .brand-header h1 { color: var(--primary); font-size: 26px; margin: 0 0 5px 0; font-weight: 800; letter-spacing: 0.5px; }
+    .brand-header p { color: var(--text-muted); font-size: 13px; margin: 0; font-weight: 500; }
+    
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 22px; }
+    .tab-btn { flex: 1; padding: 12px; background: none; border: none; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.3s; font-size: 14px; text-align: center; }
+    .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); font-size: 14px; }
+    
+    /* تصميم مربعات الخطط العصرية (Grid Cards) */
+    .plans-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+    .plan-card { border: 2px solid #cbd5e1; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; background: #f8fafc; }
+    .plan-card:hover { border-color: var(--primary); background: #eff6ff; }
+    .plan-card.selected { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+    .plan-card input[type="radio"] { display: none; }
+    .plan-title { font-weight: bold; font-size: 14px; color: var(--text-main); margin-bottom: 4px; }
+    .plan-price { color: var(--primary); font-size: 15px; font-weight: 800; }
+
+    input[type="text"], input[type="number"] { width: 100%; padding: 13px; border: 1.5px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background: #f8fafc; color: #0f172a; }
+    input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary); background: #fff; outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+    
+    .auto-total-box { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 12px 15px; border-radius: 10px; font-weight: bold; font-size: 15px; text-align: center; margin-bottom: 18px; display: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+
+    .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35); }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    
+    .pay-section { display: none; margin-top: 20px; background: #eff6ff; padding: 18px; border-radius: 12px; border: 1.5px dashed var(--primary); text-align: center; }
+    .pay-number-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 12px 0; }
+    .pay-number { font-size: 22px; font-weight: bold; color: #dc2626; letter-spacing: 1px; }
+    .copy-btn { background: #16a34a; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
+    .copy-btn:hover { background: #15803d; }
+    
+    .status-card { display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 18px; border-radius: 12px; margin-top: 15px; line-height: 1.8; }
+    .status-badge { display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: bold; margin-top: 5px; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-approved { background: #dcfce7; color: #15803d; }
+    .status-rejected { background: #fee2e2; color: #b91c1c; }
+    
+    .receipt-btn { display: none; margin-top: 15px; background: #16a34a; color: white; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; cursor: pointer; border:none; width: 100%; }
+    .wa-btn { display: none; margin-top: 10px; background: #25d366; color: white; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; }
+
+    #status { margin-top: 15px; text-align: center; font-weight: bold; line-height: 1.5; font-size: 14px; }
+    .blocked-box { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand-header">
+    <h1>لاشين تك</h1>
+    <p>Lashin Tech - بوابة خدمات الشبكات</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('sub')">تجديد الاشتراك</button>
+    <button class="tab-btn" onclick="switchTab('check')">متابعة حالة الطلب</button>
+  </div>
+  
+  <div id="blockNotice" class="blocked-box" style="display: none;"></div>
+
+  <form id="subForm">
+    <div class="form-group">
+      <label>اختر الباقة الأساسية:</label>
+      <div class="plans-grid">
+        <label class="plan-card" onclick="selectPlan(this)">
+          <input type="radio" name="plan" value="cafe" data-price="100">
+          <div class="plan-title">خطة الكافيهات</div>
+          <div class="plan-price">100 ج.م</div>
+        </label>
+        <label class="plan-card selected" onclick="selectPlan(this)">
+          <input type="radio" name="plan" value="x100" data-price="150" checked>
+          <div class="plan-title">خطة 100 عميل</div>
+          <div class="plan-price">150 ج.م</div>
+        </label>
+        <label class="plan-card" onclick="selectPlan(this)">
+          <input type="radio" name="plan" value="x150" data-price="225">
+          <div class="plan-title">خطة 150 عميل</div>
+          <div class="plan-price">225 ج.م</div>
+        </label>
+        <label class="plan-card" onclick="selectPlan(this)">
+          <input type="radio" name="plan" value="3months" data-price="450">
+          <div class="plan-title">خطة 150 عميل ×3شهر</div>
+          <div class="plan-price">450 ج.م</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="extraServers">عدد السيرفرات الإضافية (السيرفر بـ 100 ج.م):</label>
+      <input type="number" id="extraServers" min="0" value="0" placeholder="اكتب عدد السيرفرات (اختياري)" oninput="updateAmount()">
+    </div>
+
+    <div class="form-group">
+      <label for="couponInput">هل لديك كود خصم؟ (اختياري):</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="couponInput" placeholder="أدخل الكود هنا">
+        <button type="button" class="btn" style="width: auto; padding: 10px 15px; margin: 0; background: #16a34a;" onclick="applyCoupon()">تطبيق</button>
+      </div>
+      <small id="couponMsg" style="display: block; margin-top: 4px; font-weight: bold;"></small>
+    </div>
+
+    <div class="form-group">
+      <label for="userName">اسم العميل:</label>
+      <input type="text" id="userName" required placeholder="أدخل اسمك بالكامل">
+    </div>
+
+    <div class="form-group">
+      <label for="userPhone">رقم تليفون المشترك:</label>
+      <input type="text" id="userPhone" required placeholder="أدخل رقمك المسجل بالسيستم">
+    </div>
+
+    <!-- الرسالة الحمراء التلقائية تحت رقم التليفون -->
+    <div id="autoTotalBox" class="auto-total-box"></div>
+
+    <button type="button" class="btn" id="payBtn" onclick="showPaySection()">التالي والدفع</button>
+
+    <div class="pay-section" id="paySection">
+      <div>برجاء تحويل المبلغ المطلوب على الرقم التالي:</div>
+      <div class="pay-number-container">
+        <span class="pay-number" id="payNumberDisplay">جاري جلب الرقم...</span>
+        <button type="button" class="copy-btn" onclick="copyPayNumber()" id="copyBtn">📋 نسخ الرقم</button>
+      </div>
+      <small style="color: #334155;">بعد إتمام التحويل، يرجى كتابة المبلغ الذي قمت بتحويله يدوياً في الخانة أدناه.</small>
+    </div>
+
+    <div class="confirmation-section" id="confirmSection" style="display:none; margin-top:15px;">
+      <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 20px 0;">
+      <div class="form-group">
+        <label for="amount">اجمالي المبلغ الذي تم تحويله </label>
+        <input type="number" id="amount" required placeholder="اكتب المبلغ الفعلي الذي حولته">
+      </div>
+      <div class="form-group">
+        <label for="senderPhone">الرقم المحول منه:</label>
+        <input type="text" id="senderPhone" required placeholder="رقم المحفظة التي قمت بالتحويل منها">
+      </div>
+      <button type="submit" class="btn" id="submitBtn">إرسال طلب التجديد</button>
+    </div>
+  </form>
+
+  <div id="checkSection" style="display: none;">
+    <div class="form-group">
+      <label for="checkPhone">رقم تليفون المشترك:</label>
+      <input type="text" id="checkPhone" placeholder="أدخل رقم التليفون الذي قدمت به الطلب">
+    </div>
+    <button class="btn" onclick="checkOrderStatus()">متابعة حالة الطلب</button>
+
+    <div class="status-card" id="statusResult">
+      <div>اسم العميل: <strong id="resName"></strong></div>
+      <div style="margin-top:5px;">الباقة المختارة: <strong id="resPlan"></strong></div>
+      <div style="margin-top:5px;">حالة الاشتراك الشهري: <span style="color: var(--primary); font-weight: bold;">تستحق في يوم 1 من كل شهر</span></div>
+      <div id="daysRemainingBox" style="margin-top: 5px; font-weight: bold; color: #dc2626;"></div>
+      <div style="margin-top:8px;">حالة الطلب:</div>
+      <div id="resBadge"></div>
+      <div id="resNote" style="margin-top:8px; color:#dc2626; font-size:13px; font-weight:bold;"></div>
+      <button class="receipt-btn" id="receiptBtn" onclick="printReceipt()">📄 تحميل إيصال التجديد (PDF)</button>
+      <a id="waDirectBtn" href="#" target="_blank" class="wa-btn">💬 مراسلة الدعم عبر واتساب</a>
+    </div>
+  </div>
+
+  <div id="status"></div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQdtJXIqn7GfANLgmn6ics9uP1RJjPEluEBbPZXu65h5qhySBuJ0eC3Zn5gkO5YlYX/exec";
+  let currentOrderData = null;
+  let appliedDiscount = 0;
+  let calculatedTotalPrice = 0;
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('status').innerText = '';
+    if(tab === 'sub') {
+      event.target.classList.add('active');
+      document.getElementById('subForm').style.display = 'block';
+      document.getElementById('blockNotice').style.display = 'none';
+      document.getElementById('checkSection').style.display = 'none';
+    } else {
+      event.target.classList.add('active');
+      document.getElementById('subForm').style.display = 'none';
+      document.getElementById('blockNotice').style.display = 'none';
+      document.getElementById('checkSection').style.display = 'block';
+    }
+  }
+
+  function selectPlan(cardElement) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    cardElement.classList.add('selected');
+    cardElement.querySelector('input[type="radio"]').checked = true;
+    updateAmount();
+  }
+
+  function updateAmount() {
+    const selectedRadio = document.querySelector('input[name="plan"]:checked');
+    const basePrice = selectedRadio ? parseFloat(selectedRadio.getAttribute('data-price')) || 0 : 0;
+    const extraCount = parseInt(document.getElementById('extraServers').value) || 0;
+    const extraPrice = extraCount * 100; // السيرفر الإضافي بـ 100 جنيه
+    
+    calculatedTotalPrice = Math.max(0, (basePrice + extraPrice) - appliedDiscount);
+    
+    const totalBox = document.getElementById('autoTotalBox');
+    totalBox.style.display = 'block';
+    totalBox.innerText = `🔥 إجمالي المبلغ المطلوب : ${calculatedTotalPrice} جنيه مصري`;
+  }
+  updateAmount();
+
+  function applyCoupon() {
+    const code = document.getElementById('couponInput').value.trim();
+    const cMsg = document.getElementById('couponMsg');
+    if(!code) return alert("أدخل كود الخصم");
+
+    cMsg.style.color = "#333";
+    cMsg.innerText = "جاري التحقق من الكود...";
+
+    fetch(SCRIPT_URL + "?action=validate_coupon&code=" + encodeURIComponent(code))
+      .then(res => res.json())
+      .then(data => {
+        if(data && data.valid) {
+          appliedDiscount = parseFloat(data.discount) || 0;
+          cMsg.style.color = "#16a34a";
+          cMsg.innerText = `✓ تم تطبيق كود الخصم! الخصم: ${appliedDiscount} ج.م`;
+          updateAmount();
+        } else {
+          appliedDiscount = 0;
+          cMsg.style.color = "#dc2626";
+          cMsg.innerText = "✕ كود الخصم غير صحيح أو منتهي الصلاحية.";
+          updateAmount();
+        }
+      })
+      .catch(err => {
+        cMsg.style.color = "#dc2626";
+        cMsg.innerText = "حدث خطأ في الاتصال.";
+      });
+  }
+
+  function showPaySection() {
+    const userName = document.getElementById('userName').value.trim();
+    const userPhone = document.getElementById('userPhone').value.trim();
+    if(!userName || !userPhone) return alert("أدخل اسمك ورقم التليفون أولاً");
+
+    const status = document.getElementById('status');
+    status.style.color = "var(--primary)";
+    status.innerText = "جاري التحقق من صلاحية الطلب...";
+
+    fetch(SCRIPT_URL + "?action=check_pending_order&phone=" + encodeURIComponent(userPhone))
+      .then(res => res.json())
+      .then(data => {
+        status.innerText = "";
+        if (data && data.has_pending) {
+          document.getElementById('subForm').style.display = 'none';
+          const blockNotice = document.getElementById('blockNotice');
+          blockNotice.style.display = 'block';
+          blockNotice.innerHTML = "عفواً، لا يمكنك الدفع مرة أخرى. لديك طلب سابق قيد المراجعة خلال الـ 48 ساعة الماضية، يرجى متابعة الطلب من خانة (متابعة حالة الطلب).";
+          return;
+        }
+
+        document.getElementById('paySection').style.display = 'block';
+        document.getElementById('payNumberDisplay').innerText = 'جاري جلب الرقم...';
+        document.getElementById('amount').value = '';
+
+        fetch(SCRIPT_URL)
+          .then(res => res.json())
+          .then(payData => {
+            if(payData && payData.service_status === "OFF") {
+              document.getElementById('subForm').style.display = 'none';
+              const blockNotice = document.getElementById('blockNotice');
+              blockNotice.style.display = 'block';
+              blockNotice.innerText = "عفواً، استقبال طلبات التجديد متوقف مؤقتاً للصيانة.";
+              return;
+            }
+            if(payData && payData.pay_number) {
+              document.getElementById('payNumberDisplay').innerText = payData.pay_number;
+              document.getElementById('confirmSection').style.display = 'block';
+            }
+          });
+      })
+      .catch(err => {
+        status.style.color = "#dc2626";
+        status.innerText = "حدث خطأ في الاتصال بالسيفر.";
+      });
+  }
+
+  function copyPayNumber() {
+    const numText = document.getElementById('payNumberDisplay').innerText;
+    if(numText) {
+      navigator.clipboard.writeText(numText).then(() => {
+        document.getElementById('copyBtn').innerText = "✓ تم النسخ";
+        setTimeout(() => { document.getElementById('copyBtn').innerText = "📋 نسخ الرقم"; }, 2000);
+      });
+    }
+  }
+
+  document.getElementById('subForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const status = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    status.style.color = "var(--primary)";
+    status.innerText = "⏳ جاري العمل على التفعيل، يرجى الانتظار...";
+
+    const selectedRadio = document.querySelector('input[name="plan"]:checked');
+    const planCard = selectedRadio.closest('.plan-card');
+    const planText = planCard.querySelector('.plan-title').innerText;
+    
+    const extraCount = parseInt(document.getElementById('extraServers').value) || 0;
+    const fullPlanName = extraCount > 0 ? `${planText} + ${extraCount} سيرفر إضافي` : planText;
+
+    const payload = {
+      action: "submit_subscription",
+      user_name: document.getElementById('userName').value,
+      user_phone: document.getElementById('userPhone').value,
+      plan_name: fullPlanName,
+      amount: document.getElementById('amount').value,
+      sender_phone: document.getElementById('senderPhone').value
+    };
+
+    const formData = new URLSearchParams();
+    formData.append("data", JSON.stringify(payload));
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      status.style.color = "#16a34a";
+      status.innerText = "✅ جاري العمل على التفعيل الآن، يرجى الانتظار سيتم مراجعة الطلب وتفعيله قريباً. (مقيّد بـ 48 ساعة لكل طلب).";
+      document.getElementById('subForm').reset();
+      document.getElementById('paySection').style.display = 'none';
+      document.getElementById('confirmSection').style.display = 'none';
+      document.getElementById('autoTotalBox').style.display = 'none';
+      submitBtn.disabled = false;
+    })
+    .catch(err => {
+      status.style.color = "#16a34a";
+      status.innerText = "✅ جاري العمل على التفعيل الآن، يرجى الانتظار سيتم مراجعة الطلب وتفعيله قريباً.";
+      document.getElementById('subForm').reset();
+      document.getElementById('paySection').style.display = 'none';
+      document.getElementById('confirmSection').style.display = 'none';
+      document.getElementById('autoTotalBox').style.display = 'none';
+      submitBtn.disabled = false;
+    });
+  });
+
+  function checkOrderStatus() {
+    const phone = document.getElementById('checkPhone').value.trim();
+    const status = document.getElementById('status');
+    const statusResult = document.getElementById('statusResult');
+    
+    if(!phone) return alert("يرجى كتابة رقم تليفون المشترك");
+
+    status.style.color = "#333";
+    status.innerText = "جاري البحث الفوري عن حالة الطلب...";
+    statusResult.style.display = "none";
+
+    fetch(SCRIPT_URL + "?action=check_status&phone=" + encodeURIComponent(phone))
+      .then(response => response.json())
+      .then(data => {
+        status.innerText = "";
+        
+        if (!data || data.result === "not_found" || !data.order) {
+          status.style.color = "#dc2626";
+          status.innerText = "لم يتم العثور على طلبات لهذا الرقم.";
+          return;
+        }
+
+        currentOrderData = data.order;
+        statusResult.style.display = "block";
+        document.getElementById('resName').innerText = data.order.name;
+        document.getElementById('resPlan').innerText = data.order.plan;
+
+        const now = new Date();
+        const nextMonthFirst = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const diffTime = nextMonthFirst - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const daysBox = document.getElementById('daysRemainingBox');
+        if(data.order.status === "تم التفعيل") {
+          daysBox.innerText = `⏳ متبقي على تاريخ تجديد الاشتراك القادم (1 في الشهر): ${diffDays} يوم`;
+        } else {
+          daysBox.innerText = "";
+        }
+
+        const resBadge = document.getElementById('resBadge');
+        const receiptBtn = document.getElementById('receiptBtn');
+        const waDirectBtn = document.getElementById('waDirectBtn');
+        const resNote = document.getElementById('resNote');
+
+        if(data.order.status === "تم التفعيل") {
+          resBadge.innerHTML = '<span class="status-badge status-approved">تم التفعيل بنجاح ✅</span>';
+          receiptBtn.style.display = 'block';
+          waDirectBtn.style.display = 'none';
+        } else if(data.order.status === "مرفوض") {
+          resBadge.innerHTML = '<span class="status-badge status-rejected">الطلب مرفوض ❌</span>';
+          if(data.order.note) resNote.innerText = "سبب الرفض: " + data.order.note;
+          receiptBtn.style.display = 'none';
+          waDirectBtn.style.display = 'none';
+        } else {
+          resBadge.innerHTML = '<span class="status-badge status-pending">قيد المراجعة والتفعيل ⏳ (جاري العمل على التفعيل)</span>';
+          receiptBtn.style.display = 'none';
+          
+          const adminWa = "201125877037";
+          const msg = encodeURIComponent(`مرحباً إدارة لاشين تك، لقد قمت بإرسال طلب تجديد باسم (${data.order.name}) ورقم (${phone}) لخطة (${data.order.plan}) بمبلغ (${data.order.amount} ج.م)، برجاء المراجعة والتفعيل.`);
+          waDirectBtn.href = `https://wa.me/${adminWa}?text=${msg}`;
+          waDirectBtn.style.display = 'block';
+        }
+      })
+      .catch(err => {
+        status.style.color = "#dc2626";
+        status.innerText = "حدث خطأ في الاتصال بالسيفر، حاول مرة أخرى.";
+      });
+  }
+</script>
+
+</body>
+</html>
